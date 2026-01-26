@@ -15,16 +15,16 @@ export default class ImageViewPlugin extends Plugin {
 		);
 
 		// Add ribbon icon to open the slideshow view
-		this.addRibbonIcon('images', 'Open Image Slideshow', () => {
-			this.activateView();
+		this.addRibbonIcon('images', 'Open image slideshow', () => {
+			this.activateView().catch(err => console.error('Failed to activate view', err));
 		});
 
 		// Add command to open the image slideshow view
 		this.addCommand({
 			id: 'imageview-open-slideshow',
-			name: 'Open Image Slideshow',
+			name: 'Open image slideshow',
 			callback: () => {
-				this.activateView();
+				this.activateView().catch(err => console.error('Failed to activate view', err));
 			}
 		});
 
@@ -51,7 +51,7 @@ export default class ImageViewPlugin extends Plugin {
 			}
 			// Reveal the leaf
 			if (leaf) {
-				workspace.revealLeaf(leaf);
+				await workspace.revealLeaf(leaf);
 			}
 		} else {
 			// If view already exists, close it (toggle behavior)
@@ -60,12 +60,12 @@ export default class ImageViewPlugin extends Plugin {
 	}
 
 	onunload() {
-		// Detach all image slideshow views
-		this.app.workspace.detachLeavesOfType(VIEW_TYPE_IMAGE_SLIDESHOW);
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const saved = (await this.loadData()) as Partial<ImageViewSettings> | null;
+
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, saved ?? {});
 	}
 
 	async saveSettings() {

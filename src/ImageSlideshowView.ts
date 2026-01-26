@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, TFile, TFolder } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFile, TFolder, normalizePath } from 'obsidian';
 import ImageViewPlugin from './main';
 
 export const VIEW_TYPE_IMAGE_SLIDESHOW = "image-slideshow-view";
@@ -60,7 +60,7 @@ export class ImageSlideshowView extends ItemView {
 		if (defaultPath) {
 			this.loadImagesFromFolder(defaultPath);
 		} else {
-			this.showError('No folder configured. Please set a default folder path in plugin settings.');
+			this.showError('No folder found.\n\nPlease set a folder path in the plugin settings.');
 		}
 	}
 
@@ -107,6 +107,13 @@ export class ImageSlideshowView extends ItemView {
 		});
 		nextBtn.addEventListener('click', () => this.nextImage());
 
+		// Refresh button
+		const refreshBtn = this.controlsEl.createEl('button', {
+			text: '↻',
+			attr: { 'aria-label': 'Refresh folder' }
+		});
+		refreshBtn.addEventListener('click', () => this.refreshFolder());
+
 		// Image container
 		this.imageContainerEl = container.createDiv({ cls: 'imageview-image-container' });
 		this.imageEl = this.imageContainerEl.createEl('img', { cls: 'imageview-image' });
@@ -144,7 +151,7 @@ export class ImageSlideshowView extends ItemView {
 			return;
 		}
 
-		const folder = this.app.vault.getAbstractFileByPath(folderPath);
+		const folder = this.app.vault.getAbstractFileByPath(normalizePath(folderPath));
 
 		if (!folder) {
 			const allFolders = this.app.vault.getAllLoadedFiles()
@@ -289,6 +296,12 @@ export class ImageSlideshowView extends ItemView {
 	private clearError(): void {
 		this.errorEl.style.display = 'none';
 		this.imageContainerEl.style.display = 'flex';
+	}
+
+	private refreshFolder(): void {
+		if (this.currentFolderPath) {
+			this.loadImagesFromFolder(this.currentFolderPath);
+		}
 	}
 
 	// State persistence

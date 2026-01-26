@@ -11,7 +11,7 @@ export interface ImageViewSettings {
 }
 
 export const DEFAULT_SETTINGS: ImageViewSettings = {
-	defaultFolderPath: '',
+	defaultFolderPath: 'Images',
 	slideshowInterval: 3000,
 	autoplayOnOpen: false,
 	loopSlideshow: true,
@@ -37,9 +37,9 @@ export class ImageViewSettingTab extends PluginSettingTab {
 		// Default Folder Path
 		new Setting(containerEl)
 			.setName('Default folder path')
-			.setDesc('Path to folder containing images (e.g., Images/Slideshow)')
+			.setDesc('Path to folder containing images (e.g., Images)')
 			.addText(text => text
-				.setPlaceholder('Images/Slideshow')
+				.setPlaceholder('Images')
 				.setValue(this.plugin.settings.defaultFolderPath)
 				.onChange(async (value) => {
 					this.plugin.settings.defaultFolderPath = value;

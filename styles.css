@@ -9,14 +9,14 @@
 
 .imageview-controls {
 	display: flex;
-	gap: 8px;
-	padding: 8px;
+	gap: 4px;
+	padding: 4px 8px;
 	border-bottom: 1px solid var(--background-modifier-border);
 	background: var(--background-secondary);
 }
 
 .imageview-controls button {
-	padding: 4px 12px;
+	padding: 4px 8px;
 	cursor: pointer;
 	background: var(--interactive-normal);
 	border: 1px solid var(--background-modifier-border);
@@ -24,6 +24,9 @@
 	color: var(--text-normal);
 	font-size: 14px;
 	transition: background-color 0.2s;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .imageview-controls button:hover {
@@ -32,6 +35,10 @@
 
 .imageview-controls button:active {
 	background: var(--interactive-accent);
+}
+
+.imageview-controls button[aria-label="Refresh folder"] {
+	margin-left: auto;
 }
 
 .imageview-image-container {

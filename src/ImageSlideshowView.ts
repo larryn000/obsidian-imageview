@@ -45,7 +45,6 @@ export class ImageSlideshowView extends ItemView {
 	}
 
 	async onOpen(): Promise<void> {
-		console.log('ImageView: onOpen() called');
 		const container = this.containerEl.children[1];
 		if (!container) return;
 
@@ -57,7 +56,6 @@ export class ImageSlideshowView extends ItemView {
 
 		// Load images from default folder if configured
 		const defaultPath = this.plugin.settings.defaultFolderPath;
-		console.log('ImageView: Default folder path from settings:', defaultPath);
 
 		if (defaultPath) {
 			this.loadImagesFromFolder(defaultPath);
@@ -82,19 +80,12 @@ export class ImageSlideshowView extends ItemView {
 
 		// Previous button
 		const prevBtn = this.controlsEl.createEl('button', {
-			text: '◀',
+			text: '◀◀',
 			attr: { 'aria-label': 'Previous image' }
 		});
 		prevBtn.addEventListener('click', () => this.previousImage());
 
-		// Next button
-		const nextBtn = this.controlsEl.createEl('button', {
-			text: '▶',
-			attr: { 'aria-label': 'Next image' }
-		});
-		nextBtn.addEventListener('click', () => this.nextImage());
-
-		// Play/Pause button
+		// Play/Pause button (in the middle)
 		this.playPauseBtn = this.controlsEl.createEl('button', {
 			text: '▶',
 			attr: { 'aria-label': 'Play/Pause' }
@@ -108,6 +99,13 @@ export class ImageSlideshowView extends ItemView {
 				this.playPauseBtn.setText('⏸');
 			}
 		});
+
+		// Next button
+		const nextBtn = this.controlsEl.createEl('button', {
+			text: '▶▶',
+			attr: { 'aria-label': 'Next image' }
+		});
+		nextBtn.addEventListener('click', () => this.nextImage());
 
 		// Image container
 		this.imageContainerEl = container.createDiv({ cls: 'imageview-image-container' });
@@ -141,35 +139,19 @@ export class ImageSlideshowView extends ItemView {
 	private loadImagesFromFolder(folderPath: string): void {
 		this.clearError();
 
-		console.log('=== ImageView: loadImagesFromFolder DEBUG ===');
-		console.log('Folder path received:', JSON.stringify(folderPath));
-		console.log('Folder path type:', typeof folderPath);
-		console.log('Folder path length:', folderPath?.length);
-
-		// Check if path is empty
 		if (!folderPath || folderPath.trim() === '') {
-			console.log('ERROR: Path is empty or whitespace only');
 			this.showError(`No folder path configured.\n\nPlease set a folder path in the plugin settings.`);
 			return;
 		}
 
-		console.log('Attempting to get folder at path:', folderPath);
 		const folder = this.app.vault.getAbstractFileByPath(folderPath);
-		console.log('Folder result:', folder);
-		console.log('Is TFolder?', folder instanceof TFolder);
 
 		if (!folder) {
-			console.log('ERROR: Folder not found at path:', folderPath);
-
-			// Show available folders to help the user
-			const rootFolder = this.app.vault.getRoot();
 			const allFolders = this.app.vault.getAllLoadedFiles()
 				.filter(f => f instanceof TFolder)
 				.map(f => f.path)
 				.filter(p => p !== '')
 				.slice(0, 10);
-
-			console.log('Available folders in vault:', allFolders);
 
 			const folderList = allFolders.length > 0
 				? `\n\nAvailable folders:\n${allFolders.join('\n')}`
@@ -184,28 +166,17 @@ export class ImageSlideshowView extends ItemView {
 			return;
 		}
 
-		// Filter for image files
-		console.log('Folder children count:', folder.children.length);
-		console.log('Folder children:', folder.children.map(f => f.path));
-
-		// Debug each file individually
 		this.imageFiles = this.filterImageFiles(folder.children);
 
-		console.log('Image files found:', this.imageFiles.length);
-		console.log('Image file paths:', this.imageFiles.map(f => f.path));
-
 		if (this.imageFiles.length === 0) {
-			console.log('ERROR: No image files found in folder');
 			this.showError(`No images found in folder: ${folderPath}\n\nSupported formats: PNG, JPG, JPEG, GIF, WEBP, SVG, BMP`);
 			return;
 		}
 
-		console.log('SUCCESS: Images loaded, displaying first image');
 		this.currentFolderPath = folderPath;
 		this.currentImageIndex = 0;
 		this.displayImage(0);
 
-		// Auto-start slideshow if configured
 		if (this.plugin.settings.autoplayOnOpen) {
 			this.startSlideshow();
 			this.playPauseBtn.setText('⏸');
@@ -291,35 +262,20 @@ export class ImageSlideshowView extends ItemView {
 	}
 
 	private filterImageFiles(children: any[]): TFile[] {
-		console.log('=== filterImageFiles DEBUG ===');
 
 		const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'];
 		const results: TFile[] = [];
 
 		for (const child of children) {
-			console.log('Checking child:', child.path);
-			console.log('  - Is TFile?', child instanceof TFile);
-
 			if (child instanceof TFile) {
-				console.log('  - Extension:', child.extension);
-				console.log('  - Extension type:', typeof child.extension);
-				console.log('  - Extension lowercase:', child.extension?.toLowerCase());
-
 				const isImage = imageExtensions.includes(child.extension?.toLowerCase());
-				console.log('  - Is image?', isImage);
 
 				if (isImage) {
-					console.log('  ✓ ADDED to results');
 					results.push(child);
-				} else {
-					console.log('  ✗ SKIPPED - not an image extension');
 				}
-			} else {
-				console.log('  ✗ SKIPPED - not a TFile');
 			}
 		}
 
-		console.log('Total images filtered:', results.length);
 		return results.sort((a, b) => a.name.localeCompare(b.name));
 	}
 

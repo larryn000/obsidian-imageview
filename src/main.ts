@@ -49,11 +49,13 @@ export default class ImageViewPlugin extends Plugin {
 				});
 				leaf = rightLeaf;
 			}
-		}
-
-		// Reveal the leaf
-		if (leaf) {
-			workspace.revealLeaf(leaf);
+			// Reveal the leaf
+			if (leaf) {
+				workspace.revealLeaf(leaf);
+			}
+		} else {
+			// If view already exists, close it (toggle behavior)
+			leaf.detach();
 		}
 	}
 

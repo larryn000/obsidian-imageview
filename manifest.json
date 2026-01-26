@@ -4,8 +4,8 @@
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
 "description": "Browse and view images from any vault folder in a dedicated Obsidian pane, with slideshow-style navigation and session persistence.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"author": "Larry Nguyen",
+	"authorUrl": "https://github.com/larryn000",
+	"fundingUrl": "",
 	"isDesktopOnly": true
 }

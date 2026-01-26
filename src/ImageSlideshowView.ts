@@ -1,7 +1,12 @@
-import { ItemView, WorkspaceLeaf, TFile, TFolder, normalizePath } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFile, TFolder, normalizePath, ViewStateResult, TAbstractFile } from 'obsidian';
 import ImageViewPlugin from './main';
 
 export const VIEW_TYPE_IMAGE_SLIDESHOW = "image-slideshow-view";
+
+export interface ImageViewState extends Record<string, unknown> {
+  folderPath: string;
+  currentIndex: number;
+}
 
 export class ImageSlideshowView extends ItemView {
 	plugin: ImageViewPlugin;
@@ -268,7 +273,7 @@ export class ImageSlideshowView extends ItemView {
 		this.isPlaying = false;
 	}
 
-	private filterImageFiles(children: any[]): TFile[] {
+	private filterImageFiles(children: TAbstractFile[]): TFile[] {
 
 		const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'];
 		const results: TFile[] = [];
@@ -304,17 +309,29 @@ export class ImageSlideshowView extends ItemView {
 		}
 	}
 
+	private isImageViewState(
+		state: Record<string, unknown>
+	): state is ImageViewState {
+	return (
+		typeof state.folderPath === "string" &&
+		typeof state.currentIndex === "number"
+	);
+}
+
+
 	// State persistence
-	getState(): any {
+	getState(): Record<string, unknown> {
 		return {
 			folderPath: this.currentFolderPath,
 			currentIndex: this.currentImageIndex
 		};
 	}
 
-	async setState(state: any, result: any): Promise<void> {
+	async setState(state: Record<string, unknown>, _result: ViewStateResult): Promise<void> {
+		const viewState = state as ImageViewState;
+
 		if (state?.folderPath) {
-			this.loadImagesFromFolder(state.folderPath);
+			this.loadImagesFromFolder(viewState.folderPath);
 
 			// Restore image index if valid
 			if (typeof state.currentIndex === 'number' &&

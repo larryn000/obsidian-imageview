@@ -15,7 +15,7 @@ export default class ImageViewPlugin extends Plugin {
 		);
 
 		// Add ribbon icon to open the slideshow view
-		this.addRibbonIcon('images', 'Open Image Slideshow', (evt: MouseEvent) => {
+		this.addRibbonIcon('images', 'Open Image Slideshow', () => {
 			this.activateView();
 		});
 

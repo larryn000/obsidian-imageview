@@ -23,12 +23,8 @@ export default tseslint.config(
 	},
 	...obsidianmd.configs.recommended,
 	globalIgnores([
-		"node_modules",
-		"dist",
-		"esbuild.config.mjs",
-		"eslint.config.js",
-		"version-bump.mjs",
-		"versions.json",
-		"main.js",
+		"**/main.js",
+		"**/dist/**",
+		"**/node_modules/**",
 	]),
 );

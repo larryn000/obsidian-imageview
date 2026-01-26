@@ -327,7 +327,7 @@ export class ImageSlideshowView extends ItemView {
 		};
 	}
 
-	async setState(state: Record<string, unknown>, _result: ViewStateResult): Promise<void> {
+	async setState(state: Record<string, unknown>, result: ViewStateResult): Promise<void> {
 		const viewState = state as ImageViewState;
 
 		if (state?.folderPath) {

@@ -32,12 +32,15 @@ export class ImageViewSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Image Slideshow Settings'});
+	new Setting(containerEl)
+		.setName('Image slideshow')
+		.setHeading();
+
 
 		// Default Folder Path
 		new Setting(containerEl)
 			.setName('Default folder path')
-			.setDesc('Path to folder containing images (e.g., Images)')
+			.setDesc('Path to folder containing images (e.g., images)')
 			.addText(text => text
 				.setPlaceholder('Images')
 				.setValue(this.plugin.settings.defaultFolderPath)

@@ -42,7 +42,7 @@ export class ImageSlideshowView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return "Image Slideshow";
+		return "Image slideshow";
 	}
 
 	getIcon(): string {
@@ -80,7 +80,7 @@ export class ImageSlideshowView extends ItemView {
 
 		// Only show controls if setting is enabled
 		if (!this.plugin.settings.showControls) {
-			this.controlsEl.style.display = 'none';
+			this.controlsEl.addClass('hidden');
 		}
 
 		// Previous button
@@ -93,7 +93,7 @@ export class ImageSlideshowView extends ItemView {
 		// Play/Pause button (in the middle)
 		this.playPauseBtn = this.controlsEl.createEl('button', {
 			text: '▶',
-			attr: { 'aria-label': 'Play/Pause' }
+			attr: { 'aria-label': 'Play/pause' }
 		});
 		this.playPauseBtn.addEventListener('click', () => {
 			if (this.isPlaying) {
@@ -141,7 +141,7 @@ export class ImageSlideshowView extends ItemView {
 
 		// Error display (hidden by default)
 		this.errorEl = container.createDiv({ cls: 'imageview-error' });
-		this.errorEl.style.display = 'none';
+		this.errorEl.addClass('hidden');
 
 		// Status bar
 		this.statusEl = container.createDiv({ cls: 'imageview-status' });
@@ -196,17 +196,16 @@ export class ImageSlideshowView extends ItemView {
 	}
 
 	private displayImage(index: number): void {
-		if (index < 0 || index >= this.imageFiles.length) {
-			return;
-		}
+		if (index < 0 || index >= this.imageFiles.length) return;
 
 		const file = this.imageFiles[index];
 		if (!file) return;
 
 		const resourcePath = this.app.vault.getResourcePath(file);
-
 		this.imageEl.src = resourcePath;
-		this.imageEl.style.display = 'block';
+
+		this.toggleDisplay(this.imageEl);
+
 		this.currentImageIndex = index;
 
 		this.statusEl.setText(
@@ -293,14 +292,13 @@ export class ImageSlideshowView extends ItemView {
 
 	private showError(message: string): void {
 		this.errorEl.setText(message);
-		this.errorEl.style.display = 'block';
-		this.imageContainerEl.style.display = 'none';
 		this.statusEl.setText('Error - see above');
+
+		this.toggleDisplay(this.errorEl, this.imageContainerEl, 'visible-block', 'hidden');
 	}
 
 	private clearError(): void {
-		this.errorEl.style.display = 'none';
-		this.imageContainerEl.style.display = 'flex';
+		this.toggleDisplay(this.imageContainerEl, this.errorEl, 'visible-flex', 'hidden');
 	}
 
 	private refreshFolder(): void {
@@ -309,15 +307,20 @@ export class ImageSlideshowView extends ItemView {
 		}
 	}
 
-	private isImageViewState(
-		state: Record<string, unknown>
-	): state is ImageViewState {
-	return (
-		typeof state.folderPath === "string" &&
-		typeof state.currentIndex === "number"
-	);
-}
+	private toggleDisplay(
+		elToShow: HTMLElement, 
+		elToHide?: HTMLElement, 
+		showClass: string = 'visible-block',
+		hideClass: string = 'hidden'
+	): void {
+		elToShow.addClass(showClass);
+		elToShow.removeClass(hideClass);
 
+		if (elToHide) {
+			elToHide.addClass(hideClass);
+			elToHide.removeClass(showClass);
+		}
+	}
 
 	// State persistence
 	getState(): Record<string, unknown> {

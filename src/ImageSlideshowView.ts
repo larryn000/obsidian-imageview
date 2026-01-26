@@ -1,0 +1,358 @@
+import { ItemView, WorkspaceLeaf, TFile, TFolder } from 'obsidian';
+import ImageViewPlugin from './main';
+
+export const VIEW_TYPE_IMAGE_SLIDESHOW = "image-slideshow-view";
+
+export class ImageSlideshowView extends ItemView {
+	plugin: ImageViewPlugin;
+
+	// State properties
+	private currentFolderPath: string;
+	private imageFiles: TFile[];
+	private currentImageIndex: number;
+	private isPlaying: boolean;
+	private slideshowInterval: number | null;
+
+	// DOM elements
+	private imageContainerEl: HTMLElement;
+	private imageEl: HTMLImageElement;
+	private controlsEl: HTMLElement;
+	private statusEl: HTMLElement;
+	private errorEl: HTMLElement;
+	private playPauseBtn: HTMLButtonElement;
+
+	constructor(leaf: WorkspaceLeaf, plugin: ImageViewPlugin) {
+		super(leaf);
+		this.plugin = plugin;
+		this.currentFolderPath = '';
+		this.imageFiles = [];
+		this.currentImageIndex = 0;
+		this.isPlaying = false;
+		this.slideshowInterval = null;
+	}
+
+	// Required abstract methods from ItemView
+	getViewType(): string {
+		return VIEW_TYPE_IMAGE_SLIDESHOW;
+	}
+
+	getDisplayText(): string {
+		return "Image Slideshow";
+	}
+
+	getIcon(): string {
+		return "images";
+	}
+
+	async onOpen(): Promise<void> {
+		console.log('ImageView: onOpen() called');
+		const container = this.containerEl.children[1];
+		if (!container) return;
+
+		container.empty();
+		container.addClass('imageview-slideshow-container');
+
+		// Build the UI structure
+		this.buildUI(container as HTMLElement);
+
+		// Load images from default folder if configured
+		const defaultPath = this.plugin.settings.defaultFolderPath;
+		console.log('ImageView: Default folder path from settings:', defaultPath);
+
+		if (defaultPath) {
+			this.loadImagesFromFolder(defaultPath);
+		} else {
+			this.showError('No folder configured. Please set a default folder path in plugin settings.');
+		}
+	}
+
+	async onClose(): Promise<void> {
+		// Cleanup is handled automatically by registerInterval
+		this.stopSlideshow();
+	}
+
+	private buildUI(container: HTMLElement): void {
+		// Controls bar
+		this.controlsEl = container.createDiv({ cls: 'imageview-controls' });
+
+		// Only show controls if setting is enabled
+		if (!this.plugin.settings.showControls) {
+			this.controlsEl.style.display = 'none';
+		}
+
+		// Previous button
+		const prevBtn = this.controlsEl.createEl('button', {
+			text: '◀',
+			attr: { 'aria-label': 'Previous image' }
+		});
+		prevBtn.addEventListener('click', () => this.previousImage());
+
+		// Next button
+		const nextBtn = this.controlsEl.createEl('button', {
+			text: '▶',
+			attr: { 'aria-label': 'Next image' }
+		});
+		nextBtn.addEventListener('click', () => this.nextImage());
+
+		// Play/Pause button
+		this.playPauseBtn = this.controlsEl.createEl('button', {
+			text: '▶',
+			attr: { 'aria-label': 'Play/Pause' }
+		});
+		this.playPauseBtn.addEventListener('click', () => {
+			if (this.isPlaying) {
+				this.stopSlideshow();
+				this.playPauseBtn.setText('▶');
+			} else {
+				this.startSlideshow();
+				this.playPauseBtn.setText('⏸');
+			}
+		});
+
+		// Image container
+		this.imageContainerEl = container.createDiv({ cls: 'imageview-image-container' });
+		this.imageEl = this.imageContainerEl.createEl('img', { cls: 'imageview-image' });
+
+		// Apply fit mode from settings
+		this.imageEl.style.objectFit = this.plugin.settings.fitImageMode;
+
+		this.imageEl.addEventListener('error', () => {
+			const currentFile = this.imageFiles[this.currentImageIndex];
+			if (currentFile) {
+				console.error('Failed to load image:', currentFile.path);
+			}
+			// Try to skip to next image on error
+			if (this.imageFiles.length > 1) {
+				this.nextImage();
+			} else {
+				this.showError('Failed to load image');
+			}
+		});
+
+		// Error display (hidden by default)
+		this.errorEl = container.createDiv({ cls: 'imageview-error' });
+		this.errorEl.style.display = 'none';
+
+		// Status bar
+		this.statusEl = container.createDiv({ cls: 'imageview-status' });
+		this.statusEl.setText('No images loaded');
+	}
+
+	private loadImagesFromFolder(folderPath: string): void {
+		this.clearError();
+
+		console.log('=== ImageView: loadImagesFromFolder DEBUG ===');
+		console.log('Folder path received:', JSON.stringify(folderPath));
+		console.log('Folder path type:', typeof folderPath);
+		console.log('Folder path length:', folderPath?.length);
+
+		// Check if path is empty
+		if (!folderPath || folderPath.trim() === '') {
+			console.log('ERROR: Path is empty or whitespace only');
+			this.showError(`No folder path configured.\n\nPlease set a folder path in the plugin settings.`);
+			return;
+		}
+
+		console.log('Attempting to get folder at path:', folderPath);
+		const folder = this.app.vault.getAbstractFileByPath(folderPath);
+		console.log('Folder result:', folder);
+		console.log('Is TFolder?', folder instanceof TFolder);
+
+		if (!folder) {
+			console.log('ERROR: Folder not found at path:', folderPath);
+
+			// Show available folders to help the user
+			const rootFolder = this.app.vault.getRoot();
+			const allFolders = this.app.vault.getAllLoadedFiles()
+				.filter(f => f instanceof TFolder)
+				.map(f => f.path)
+				.filter(p => p !== '')
+				.slice(0, 10);
+
+			console.log('Available folders in vault:', allFolders);
+
+			const folderList = allFolders.length > 0
+				? `\n\nAvailable folders:\n${allFolders.join('\n')}`
+				: '\n\nNo folders found in vault.';
+
+			this.showError(`Folder not found: "${folderPath}"${folderList}\n\nPlease check the folder path in settings.`);
+			return;
+		}
+
+		if (!(folder instanceof TFolder)) {
+			this.showError(`Path is not a folder: ${folderPath}\n\nPlease enter a valid folder path in settings.`);
+			return;
+		}
+
+		// Filter for image files
+		console.log('Folder children count:', folder.children.length);
+		console.log('Folder children:', folder.children.map(f => f.path));
+
+		// Debug each file individually
+		this.imageFiles = this.filterImageFiles(folder.children);
+
+		console.log('Image files found:', this.imageFiles.length);
+		console.log('Image file paths:', this.imageFiles.map(f => f.path));
+
+		if (this.imageFiles.length === 0) {
+			console.log('ERROR: No image files found in folder');
+			this.showError(`No images found in folder: ${folderPath}\n\nSupported formats: PNG, JPG, JPEG, GIF, WEBP, SVG, BMP`);
+			return;
+		}
+
+		console.log('SUCCESS: Images loaded, displaying first image');
+		this.currentFolderPath = folderPath;
+		this.currentImageIndex = 0;
+		this.displayImage(0);
+
+		// Auto-start slideshow if configured
+		if (this.plugin.settings.autoplayOnOpen) {
+			this.startSlideshow();
+			this.playPauseBtn.setText('⏸');
+		}
+	}
+
+	private displayImage(index: number): void {
+		if (index < 0 || index >= this.imageFiles.length) {
+			return;
+		}
+
+		const file = this.imageFiles[index];
+		if (!file) return;
+
+		const resourcePath = this.app.vault.getResourcePath(file);
+
+		this.imageEl.src = resourcePath;
+		this.imageEl.style.display = 'block';
+		this.currentImageIndex = index;
+
+		this.statusEl.setText(
+			`Image ${index + 1} of ${this.imageFiles.length} | ${file.name}`
+		);
+	}
+
+	private nextImage(): void {
+		if (this.imageFiles.length === 0) {
+			return;
+		}
+
+		let nextIndex = this.currentImageIndex + 1;
+
+		if (nextIndex >= this.imageFiles.length) {
+			if (this.plugin.settings.loopSlideshow) {
+				nextIndex = 0;
+			} else {
+				// Stop at the end if not looping
+				this.stopSlideshow();
+				this.playPauseBtn.setText('▶');
+				return;
+			}
+		}
+
+		this.displayImage(nextIndex);
+	}
+
+	private previousImage(): void {
+		if (this.imageFiles.length === 0) {
+			return;
+		}
+
+		let prevIndex = this.currentImageIndex - 1;
+
+		if (prevIndex < 0) {
+			prevIndex = this.imageFiles.length - 1;
+		}
+
+		this.displayImage(prevIndex);
+	}
+
+	private startSlideshow(): void {
+		if (this.imageFiles.length === 0) {
+			return;
+		}
+
+		// Clear any existing interval
+		this.stopSlideshow();
+
+		const interval = window.setInterval(() => {
+			this.nextImage();
+		}, this.plugin.settings.slideshowInterval);
+
+		this.slideshowInterval = this.registerInterval(interval);
+		this.isPlaying = true;
+	}
+
+	private stopSlideshow(): void {
+		if (this.slideshowInterval !== null) {
+			window.clearInterval(this.slideshowInterval);
+			this.slideshowInterval = null;
+		}
+		this.isPlaying = false;
+	}
+
+	private filterImageFiles(children: any[]): TFile[] {
+		console.log('=== filterImageFiles DEBUG ===');
+
+		const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'];
+		const results: TFile[] = [];
+
+		for (const child of children) {
+			console.log('Checking child:', child.path);
+			console.log('  - Is TFile?', child instanceof TFile);
+
+			if (child instanceof TFile) {
+				console.log('  - Extension:', child.extension);
+				console.log('  - Extension type:', typeof child.extension);
+				console.log('  - Extension lowercase:', child.extension?.toLowerCase());
+
+				const isImage = imageExtensions.includes(child.extension?.toLowerCase());
+				console.log('  - Is image?', isImage);
+
+				if (isImage) {
+					console.log('  ✓ ADDED to results');
+					results.push(child);
+				} else {
+					console.log('  ✗ SKIPPED - not an image extension');
+				}
+			} else {
+				console.log('  ✗ SKIPPED - not a TFile');
+			}
+		}
+
+		console.log('Total images filtered:', results.length);
+		return results.sort((a, b) => a.name.localeCompare(b.name));
+	}
+
+	private showError(message: string): void {
+		this.errorEl.setText(message);
+		this.errorEl.style.display = 'block';
+		this.imageContainerEl.style.display = 'none';
+		this.statusEl.setText('Error - see above');
+	}
+
+	private clearError(): void {
+		this.errorEl.style.display = 'none';
+		this.imageContainerEl.style.display = 'flex';
+	}
+
+	// State persistence
+	getState(): any {
+		return {
+			folderPath: this.currentFolderPath,
+			currentIndex: this.currentImageIndex
+		};
+	}
+
+	async setState(state: any, result: any): Promise<void> {
+		if (state?.folderPath) {
+			this.loadImagesFromFolder(state.folderPath);
+
+			// Restore image index if valid
+			if (typeof state.currentIndex === 'number' &&
+			    state.currentIndex >= 0 &&
+			    state.currentIndex < this.imageFiles.length) {
+				this.displayImage(state.currentIndex);
+			}
+		}
+	}
+}

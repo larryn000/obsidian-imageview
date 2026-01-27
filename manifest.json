@@ -3,7 +3,7 @@
 	"name": "ImageView",
 	"version": "1.0.0",
 	"minAppVersion": "1.0.0",
-	"description": "Browse and view images from any vault folder, with slideshow-style navigation.",
+	"description": "Browse and view images from any vault folder with slideshow-style navigation.",
 	"author": "Larry Nguyen",
 	"authorUrl": "https://github.com/larryn000",
 	"fundingUrl": "",

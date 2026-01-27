@@ -1,5 +1,5 @@
 {
-	"name": "obsidian-imageview",
+	"name": "imageview",
 	"version": "1.0.0",
 	"description": "An Obsidian plugin for viewing and navigating images in a slideshow within your vault",
 	"main": "main.js",

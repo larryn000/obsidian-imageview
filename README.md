@@ -1,90 +1,84 @@
-# Obsidian Sample Plugin
+# Obsidian ImageView Plugin
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+A slideshow plugin for Obsidian that displays images from a folder in your vault with automatic cycling and playback controls.
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+## Features
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open modal (simple)" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+- **Slideshow View**: Display images from a specified folder in a dedicated view panel
+- **Automatic Cycling**: Auto-play slideshow with configurable interval (500-10000ms)
+- **Playback Controls**: Previous, Play/Pause, Next, and Refresh buttons
+- **Flexible Display**: Choose between contain, cover, or fill image modes
+- **Customizable Settings**:
+  - Set default folder path for images
+  - Configure slideshow interval
+  - Enable/disable autoplay on view open
+  - Toggle looping behavior
+  - Show/hide playback controls
+  - Show/hide status bar (image index and filename)
+- **Smart Performance**: Automatically pauses slideshow when browser tab is hidden or when switching to another pane
+- **State Persistence**: Remembers your current folder and image position across sessions
+- **Supported Formats**: PNG, JPG, JPEG, GIF, WEBP, SVG, BMP
 
-## First time developing plugins?
+## Installation
 
-Quick starting guide for new plugin devs:
+### From Community Plugins
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+Within Obsidian, search for ImageView in the Community Plugins browser and install it directly.
 
-## Releasing new releases
+### Manual Installation
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+1. Download the latest release files: `main.js`, `styles.css`, `manifest.json`
+2. Create a folder named `obsidian-imageview` in your vault's `.obsidian/plugins/` directory
+3. Copy the downloaded files into the new folder
+4. Reload Obsidian
+5. Enable the plugin in Settings → Community plugins
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+## How to Use
 
-## Adding your plugin to the community plugin list
+### Opening the Slideshow View
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+1. Click the images icon in the left ribbon bar, or
+2. Use the command palette (Ctrl/Cmd+P) and search for "Open image slideshow"
 
-## How to use
+### Setting Up Your Image Folder
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+1. Go to Settings → ImageView
+2. Set the "Default folder path" to your images folder (e.g., `Images` or `Media/Photos`)
+3. The view will automatically load images from this folder
 
-## Manually installing the plugin
+### Controls
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+- **◀◀ Previous**: Go to previous image
+- **▶/⏸ Play/Pause**: Start or pause the automatic slideshow
+- **▶▶ Next**: Go to next image
+- **↻ Refresh**: Reload the folder to detect new or removed images
 
-## Improve code quality with eslint
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- This project already has eslint preconfigured, you can invoke a check by running`npm run lint`
-- Together with a custom eslint [plugin](https://github.com/eslint-plugin) for Obsidan specific code guidelines.
-- A GitHub action is preconfigured to automatically lint every commit on all branches.
+### Settings
 
-## Funding URL
+| Setting | Description | Default |
+|---------|-------------|---------|
+| Default folder path | Path to folder containing images | `Images` |
+| Slideshow interval | Time between images in milliseconds | `3000` |
+| Autoplay on open | Start slideshow automatically when view opens | `false` |
+| Loop slideshow | Return to first image after last image | `true` |
+| Show controls | Display playback controls in the view | `true` |
+| Show status bar | Display image index and filename at the bottom | `true` |
+| Fit image mode | How images should be sized (contain/cover/fill) | `contain` |
 
-You can include funding URLs where people who use your plugin can financially support it.
+## Development
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+### Setup
 
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
-```
+1. Clone this repository into your vault's `.obsidian/plugins/` folder
+2. Install dependencies: `npm install`
+3. Start development mode: `npm run dev`
+4. Make changes and reload Obsidian to see updates
 
-If you have multiple URLs, you can also do:
+### Building
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
-```
+- Development build: `npm run dev`
+- Production build: `npm run build`
 
-## API Documentation
+## Support
 
-See https://docs.obsidian.md
+For issues, feature requests, or contributions, please visit the [GitHub repository](https://github.com/larryn000/obsidian-imageview).

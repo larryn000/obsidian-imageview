@@ -146,6 +146,11 @@ export class ImageSlideshowView extends ItemView {
 		// Status bar
 		this.statusEl = container.createDiv({ cls: 'imageview-status' });
 		this.statusEl.setText('No images loaded');
+
+		// Hide status bar if setting is disabled
+		if (!this.plugin.settings.showStatusBar) {
+			this.statusEl.addClass('hidden');
+		}
 	}
 
 	private loadImagesFromFolder(folderPath: string): void {
@@ -342,6 +347,34 @@ export class ImageSlideshowView extends ItemView {
 			    state.currentIndex < this.imageFiles.length) {
 				this.displayImage(state.currentIndex);
 			}
+		}
+	}
+
+	// Public method to update view when settings change
+	updateViewFromSettings(): void {
+		// Update controls visibility
+		if (this.plugin.settings.showControls) {
+			this.controlsEl.removeClass('hidden');
+		} else {
+			this.controlsEl.addClass('hidden');
+		}
+
+		// Update status bar visibility
+		if (this.plugin.settings.showStatusBar) {
+			this.statusEl.removeClass('hidden');
+		} else {
+			this.statusEl.addClass('hidden');
+		}
+
+		// Update image fit mode
+		if (this.imageEl) {
+			this.imageEl.style.objectFit = this.plugin.settings.fitImageMode;
+		}
+
+		// Reload images if folder path changed
+		const newFolderPath = this.plugin.settings.defaultFolderPath;
+		if (newFolderPath && newFolderPath !== this.currentFolderPath) {
+			this.loadImagesFromFolder(newFolderPath);
 		}
 	}
 }

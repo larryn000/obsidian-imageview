@@ -7,6 +7,7 @@ export interface ImageViewSettings {
 	autoplayOnOpen: boolean;
 	loopSlideshow: boolean;
 	showControls: boolean;
+	showStatusBar: boolean;
 	fitImageMode: 'contain' | 'cover' | 'fill';
 }
 
@@ -16,6 +17,7 @@ export const DEFAULT_SETTINGS: ImageViewSettings = {
 	autoplayOnOpen: false,
 	loopSlideshow: true,
 	showControls: true,
+	showStatusBar: true,
 	fitImageMode: 'contain'
 }
 
@@ -94,6 +96,17 @@ export class ImageViewSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.showControls)
 				.onChange(async (value) => {
 					this.plugin.settings.showControls = value;
+					await this.plugin.saveSettings();
+				}));
+
+		// Show Status Bar
+		new Setting(containerEl)
+			.setName('Show status bar')
+			.setDesc('Display image index and filename at the bottom')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.showStatusBar)
+				.onChange(async (value) => {
+					this.plugin.settings.showStatusBar = value;
 					await this.plugin.saveSettings();
 				}));
 

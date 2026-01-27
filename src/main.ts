@@ -21,7 +21,7 @@ export default class ImageViewPlugin extends Plugin {
 
 		// Add command to open the image slideshow view
 		this.addCommand({
-			id: 'imageview-open-slideshow',
+			id: 'open-slideshow',
 			name: 'Open image slideshow',
 			callback: () => {
 				this.activateView().catch(err => console.error('Failed to activate view', err));

@@ -2,7 +2,7 @@
 	"id": "obsidian-imageview",
 	"name": "ImageView",
 	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
+	"minAppVersion": "1.0.0",
 "description": "Browse and view images from any vault folder in a dedicated Obsidian pane, with slideshow-style navigation and session persistence.",
 	"author": "Larry Nguyen",
 	"authorUrl": "https://github.com/larryn000",

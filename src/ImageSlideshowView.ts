@@ -349,32 +349,4 @@ export class ImageSlideshowView extends ItemView {
 			}
 		}
 	}
-
-	// Public method to update view when settings change
-	updateViewFromSettings(): void {
-		// Update controls visibility
-		if (this.plugin.settings.showControls) {
-			this.controlsEl.removeClass('hidden');
-		} else {
-			this.controlsEl.addClass('hidden');
-		}
-
-		// Update status bar visibility
-		if (this.plugin.settings.showStatusBar) {
-			this.statusEl.removeClass('hidden');
-		} else {
-			this.statusEl.addClass('hidden');
-		}
-
-		// Update image fit mode
-		if (this.imageEl) {
-			this.imageEl.style.objectFit = this.plugin.settings.fitImageMode;
-		}
-
-		// Reload images if folder path changed
-		const newFolderPath = this.plugin.settings.defaultFolderPath;
-		if (newFolderPath && newFolderPath !== this.currentFolderPath) {
-			this.loadImagesFromFolder(newFolderPath);
-		}
-	}
 }

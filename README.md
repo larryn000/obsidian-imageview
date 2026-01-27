@@ -85,3 +85,4 @@ Within Obsidian, search for ImageView in the Community Plugins browser and insta
 ## Support
 
 For issues, feature requests, or contributions, please visit the [GitHub repository](https://github.com/larryn000/obsidian-imageview).
+

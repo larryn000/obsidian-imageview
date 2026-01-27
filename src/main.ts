@@ -70,18 +70,5 @@ export default class ImageViewPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-		// Update all open views with new settings
-		this.updateViews();
-	}
-
-	updateViews(): void {
-		// Find all open ImageSlideshowView instances and update them
-		const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_IMAGE_SLIDESHOW);
-		leaves.forEach(leaf => {
-			const view = leaf.view;
-			if (view instanceof ImageSlideshowView) {
-				view.updateViewFromSettings();
-			}
-		});
 	}
 }

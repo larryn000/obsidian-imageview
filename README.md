@@ -1,5 +1,8 @@
 # Obsidian ImageView Plugin
 
+[ImageView_Demo.webm](https://github.com/user-attachments/assets/ae10f8f2-cfdb-4976-8798-dbaa25121d12)
+
+
 A slideshow plugin for Obsidian that displays images from a folder in your vault with automatic cycling and playback controls.
 
 ## Features

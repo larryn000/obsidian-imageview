@@ -50,6 +50,7 @@ export class ImageSlideshowView extends ItemView {
 	}
 
 	async onOpen(): Promise<void> {
+		await super.onOpen();
 		const container = this.containerEl.children[1];
 		if (!container) return;
 
@@ -70,6 +71,7 @@ export class ImageSlideshowView extends ItemView {
 	}
 
 	async onClose(): Promise<void> {
+		await super.onClose();
 		// Cleanup is handled automatically by registerInterval
 		this.stopSlideshow();
 	}
@@ -335,7 +337,8 @@ export class ImageSlideshowView extends ItemView {
 		};
 	}
 
-	async setState(state: Record<string, unknown>, _result: ViewStateResult): Promise<void> {
+	async setState(state: Record<string, unknown>, result: ViewStateResult): Promise<void> {
+		await super.setState(state, result);
 		const viewState = state as ImageViewState;
 
 		if (state?.folderPath) {
